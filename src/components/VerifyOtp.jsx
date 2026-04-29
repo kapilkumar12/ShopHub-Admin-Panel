@@ -60,8 +60,6 @@ const handlePaste = (e) => {
   //////////////////////////////////////////////////////////////////
   const handleVerify = async () => {
     const finalOtp = otp.join("");
-console.log("EMAIL:", email);
-  console.log("OTP:", finalOtp);
 
     if (finalOtp.length !== 6) {
       return alert("Enter complete OTP");

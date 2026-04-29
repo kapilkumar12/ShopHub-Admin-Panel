@@ -39,7 +39,6 @@ export default function Orders() {
 
       // 🛡️ SAFE HANDLING
       const data = res.data;
-      console.log("data", data)
 
       if (Array.isArray(data)) {
         setOrders(data);
@@ -54,7 +53,6 @@ export default function Orders() {
       setCategories(data.categories || []);
 
     } catch (error) {
-      console.log(error);
       toast.error("Failed to fetch orders ❌");
       setOrders([]);
     } finally {
@@ -118,7 +116,6 @@ export default function Orders() {
       link.click();
 
     } catch (error) {
-      console.log(error);
       toast.error("Download failed ❌");
     }
   };

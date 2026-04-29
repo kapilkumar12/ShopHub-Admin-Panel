@@ -7,8 +7,10 @@ export default function Sidebar() {
 
       <nav className="space-y-4">
         <NavItem to="/" label="📊 Dashboard" />
+        <NavItem to="/users" label="👤 Users" />
         <NavItem to="/orders" label="📦 Orders" />
         <NavItem to="/products" label="📦 Products" />
+        <NavItem to="/sliders" label="🎚️ Sliders" />
       </nav>
     </div>
   );

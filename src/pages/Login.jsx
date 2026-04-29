@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import API from "../services/api";
 import { useNavigate, Link  } from 'react-router-dom';
+import { useAuth } from "../context/AuthContext";
 
 
 const Login = () => {
@@ -8,10 +9,12 @@ const Login = () => {
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('');
     const navigate = useNavigate();
+    const { fetchUser } = useAuth();
 
     const handleLogin = async () => {
         try {
             const res = await API.post('/auth/login',{ email,password });
+            await fetchUser();
             navigate('/');
         } catch (error) {
             alert('Login failed')

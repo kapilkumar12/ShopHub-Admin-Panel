@@ -2,16 +2,13 @@ import { useState } from "react";
 import API from "../services/api";
 import { useNavigate, Link } from "react-router-dom";
 
-const AddProducts = () => {
+const AddSliders = () => {
   const [form, setForm] = useState({
-    name: "",
+    title: "",
     description: "",
-    price: "",
-    category: "",
-    stock: "",
   });
 
-  const [images, setImages] = useState([]);
+  const [image, setImage] = useState([]);
   const [preview, setPreview] = useState([]);
   const [progress, setProgress] = useState(0);
 
@@ -30,7 +27,7 @@ const AddProducts = () => {
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
 
-    setImages(files);
+    setImage(files);
 
     const previewUrls = files.map((file) =>
       URL.createObjectURL(file)
@@ -46,7 +43,7 @@ const AddProducts = () => {
 
     const files = Array.from(e.dataTransfer.files);
 
-    setImages(files);
+    setImage(files);
 
     const previewUrls = files.map((file) =>
       URL.createObjectURL(file)
@@ -58,25 +55,21 @@ const AddProducts = () => {
   // ❌ REMOVE IMAGE
   ////////////////////////////////////////////////////////////////
   const removeImage = (index) => {
-    const newImages = [...images];
+    const newImages = [...image];
     const newPreview = [...preview];
 
     newImages.splice(index, 1);
     newPreview.splice(index, 1);
 
-    setImages(newImages);
+    setImage(newImages);
     setPreview(newPreview);
   };
 
   ////////////////////////////////////////////////////////////////
   // 🚀 SUBMIT WITH PROGRESS
   ////////////////////////////////////////////////////////////////
-  const handleAddProduct = async (e) => {
+  const handleAddSlider = async (e) => {
     e.preventDefault();
-
-    if (form.price < 0 || form.stock < 0) {
-      return alert("Price & Stock must be positive");
-    }
 
     try {
       const formData = new FormData();
@@ -85,11 +78,11 @@ const AddProducts = () => {
         formData.append(key, form[key]);
       });
 
-      images.forEach((img) => {
-        formData.append("images", img);
+      image.forEach((img) => {
+        formData.append("image", img);
       });
 
-      const res = await API.post("/products/add-product", formData, {
+      const res = await API.post("/hero-slider/create", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -101,10 +94,9 @@ const AddProducts = () => {
         },
       });
 
+      alert("Slider added successfully ✅");
 
-      alert("Product added successfully ✅");
-
-      navigate("/products");
+      navigate("/sliders");
 
     } catch (error) {
       alert("Upload failed ❌");
@@ -115,13 +107,13 @@ const AddProducts = () => {
     <div className="bg-gray-100 p-8 min-h-screen relative">
         <Link to="/products" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition absolute top-0 right-0">List Products</Link>
       <div className="bg-white p-6 rounded shadow max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">📝 Add Product</h1>
+        <h1 className="text-2xl font-bold mb-6">📝 Add Hero Sliders</h1>
 
-        <form onSubmit={handleAddProduct}>
+        <form onSubmit={handleAddSlider}>
           <input
             className="w-full p-2 border mb-3 rounded"
-            placeholder="Product Name"
-            name="name"
+            placeholder="Title Name"
+            name="title"
             onChange={handleChange}
           />
 
@@ -132,32 +124,6 @@ const AddProducts = () => {
             onChange={handleChange}
           />
 
-          <div className="flex gap-2">
-            <input
-              type="number"
-              min="0"
-              className="w-full p-2 border mb-3 rounded"
-              placeholder="Price"
-              name="price"
-              onChange={handleChange}
-            />
-
-            <input
-              className="w-full p-2 border mb-3 rounded"
-              placeholder="Category"
-              name="category"
-              onChange={handleChange}
-            />
-
-            <input
-              type="number"
-              min="0"
-              className="w-full p-2 border mb-3 rounded"
-              placeholder="Stock"
-              name="stock"
-              onChange={handleChange}
-            />
-          </div>
 
           {/* DRAG AREA */}
           <div
@@ -211,7 +177,7 @@ const AddProducts = () => {
           )}
 
           <button className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-            Save Product
+            Submit
           </button>
         </form>
       </div>
@@ -219,4 +185,4 @@ const AddProducts = () => {
   );
 };
 
-export default AddProducts;
+export default AddSliders;

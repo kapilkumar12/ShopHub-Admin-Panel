@@ -45,7 +45,6 @@ const EditProduct = () => {
       setPreview(product.images || []);
 
     } catch (error) {
-      console.log("FETCH ERROR:", error);
       alert("Failed to load product ❌");
     }
   };
@@ -138,14 +137,11 @@ const removeImage = (index) => {
         }
       );
 
-      console.log("UPDATE RESPONSE:", res.data);
-
       alert("Product updated successfully ✅");
 
       navigate("/products");
 
     } catch (error) {
-      console.log("UPDATE ERROR:", error);
       alert("Update failed ❌");
     }
   };

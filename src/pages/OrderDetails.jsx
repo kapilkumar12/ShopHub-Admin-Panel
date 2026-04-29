@@ -23,9 +23,7 @@ export default function OrderDetails() {
       setLoading(true);
       const res = await API.get(`/order/single/${id}`);
       setOrder(res.data.order);
-      console.log("setOrder", res.data.order)
     } catch (err) {
-      console.log("FETCH ERROR:", err);
       Swal.fire("Error", "Failed to load order", "error");
     } finally {
       setLoading(false);
