@@ -2,7 +2,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "https://shophub-backend-5fs0.onrender.com/api",
   withCredentials: true,
 });
 

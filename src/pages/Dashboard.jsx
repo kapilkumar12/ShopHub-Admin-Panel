@@ -8,24 +8,22 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const COLORS = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b"];
+
 export default function Dashboard() {
   const [data, setData] = useState(null);
   const [view, setView] = useState("monthly");
 
-  ////////////////////////////////////////////////////////////////
-  // 🔥 FETCH DATA
-  ////////////////////////////////////////////////////////////////
   useEffect(() => {
     API.get("/admin/dashboard").then((res) => {
       setData(res.data);
-      console.log("setData", res.data)
     });
   }, []);
 
   if (!data) return <p className="p-6">Loading...</p>;
 
   ////////////////////////////////////////////////////////////////
-  // 🔥 ORDER DISTRIBUTION (FIXED)
+  // 🔥 ORDER DATA
   ////////////////////////////////////////////////////////////////
   const completedOrders =
     data.totalOrders - data.pendingOrders - data.cancelledOrders;
@@ -37,7 +35,7 @@ export default function Dashboard() {
   ];
 
   ////////////////////////////////////////////////////////////////
-  // 🔥 PRODUCT ENGAGEMENT
+  // 🔥 ENGAGEMENT
   ////////////////////////////////////////////////////////////////
   const engagementData = [
     { name: "Wishlist", value: data.stats?.totalWishlist || 0 },
@@ -46,7 +44,7 @@ export default function Dashboard() {
   ];
 
   ////////////////////////////////////////////////////////////////
-  // 🔥 SALES DATA FORMAT
+  // 🔥 SALES FORMAT
   ////////////////////////////////////////////////////////////////
   const getSalesData = () => {
     let raw = [];
@@ -58,10 +56,10 @@ export default function Dashboard() {
     return raw.map((item) => ({
       name:
         view === "monthly"
-          ? `M${item._id}`
+          ? `M${item._id.month}`
           : view === "weekly"
-          ? `W${item._id}`
-          : `D${item._id}`,
+          ? `W${item._id.week}`
+          : `D${item._id.day}`,
       value: item.total,
     }));
   };
@@ -70,43 +68,43 @@ export default function Dashboard() {
   // UI
   ////////////////////////////////////////////////////////////////
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6 bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen">
 
-      <h1 className="text-2xl font-bold mb-6">📊 Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8">📊 Admin Dashboard</h1>
 
       {/* 🔥 STATS */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
-        <Card title="Orders" value={data.totalOrders} />
-        <Card title="Revenue" value={`₹${Math.floor(data.totalRevenue || 0)}`} />
-        <Card title="Pending" value={data.pendingOrders} />
-        <Card title="Cancelled" value={data.cancelledOrders} />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 mb-8">
+
+        <Card title="Orders" value={data.totalOrders} bgcolor="blue" color="white" />
+        <Card title="Revenue" value={`₹${Math.floor(data.totalRevenue)}`} bgcolor="green" color="white"/>
+        <Card title="Pending" value={data.pendingOrders} bgcolor="yellow" />
+        <Card title="Completed" value={completedOrders} bgcolor="emerald" />
+        <Card title="Cancelled" value={data.cancelledOrders} bgcolor="red" color="white"/>
+
       </div>
 
       {/* 🔥 CHARTS */}
-      <div className="grid grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
-        {/* ORDER */}
         <ChartCard title="Order Distribution">
           <CustomPie data={orderData} />
         </ChartCard>
 
-        {/* ENGAGEMENT */}
         <ChartCard title="Product Engagement">
           <CustomPie data={engagementData} />
         </ChartCard>
 
-        {/* SALES */}
-        <ChartCard title="Sales Distribution">
+        <ChartCard title="Sales Analytics">
 
           <div className="flex gap-2 mb-3">
             {["daily", "weekly", "monthly"].map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-3 py-1 rounded ${
+                className={`px-3 py-1 rounded-lg text-sm transition ${
                   view === v
                     ? "bg-blue-500 text-white"
-                    : "bg-gray-200"
+                    : "bg-gray-200 hover:bg-gray-300"
                 }`}
               >
                 {v}
@@ -121,24 +119,24 @@ export default function Dashboard() {
       </div>
 
       {/* 🔥 TOP PRODUCTS */}
-      <div className="grid grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
         <TopList
           title="❤️ Most Wishlisted"
-          data={data.topWishlist || []}
+          data={data.topWishlist}
           field="wishlistCount"
         />
 
         <TopList
           title="👁️ Most Viewed"
-          data={data.topViewed || []}
+          data={data.topViewed}
           field="views"
         />
 
         <TopList
           title="🔥 Top Selling"
-          data={data.topSelling || []}
-          field="soldCount"
+          data={data.topSelling}
+          field="salesCount"
         />
 
       </div>
@@ -147,9 +145,9 @@ export default function Dashboard() {
       <div className="bg-white p-6 rounded-2xl shadow">
         <h2 className="font-semibold mb-4">Recent Orders</h2>
 
-        <table className="w-full text-left">
+        <table className="w-full text-sm">
           <thead className="bg-gray-100">
-            <tr>
+            <tr className="text-left">
               <th className="p-3">User</th>
               <th className="p-3">Amount</th>
               <th className="p-3">Status</th>
@@ -158,10 +156,12 @@ export default function Dashboard() {
 
           <tbody>
             {data.recentOrders?.map((o) => (
-              <tr key={o._id} className="border-t">
+              <tr key={o._id} className="border-t hover:bg-gray-50">
                 <td className="p-3">{o.user?.name}</td>
-                <td className="p-3">₹{o.totalPrice}</td>
-                <td className="p-3">{o.status}</td>
+                <td className="p-3 font-semibold">₹{Math.floor(o.totalPrice)}</td>
+                <td className="p-3">
+                  <StatusBadge status={o.status} />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -176,10 +176,10 @@ export default function Dashboard() {
 // 🔥 COMPONENTS
 //////////////////////////////////////////////////////////////
 
-function Card({ title, value }) {
+function Card({ title, value, color, bgcolor }) {
   return (
-    <div className="bg-white p-5 rounded-2xl shadow">
-      <p className="text-gray-500">{title}</p>
+    <div className={`p-5 rounded-2xl shadow text-${color} bg-${bgcolor}-500`}>
+      <p className="text-sm opacity-80">{title}</p>
       <h2 className="text-2xl font-bold mt-2">{value}</h2>
     </div>
   );
@@ -207,7 +207,7 @@ function CustomPie({ data }) {
           label
         >
           {data.map((_, i) => (
-            <Cell key={i} />
+            <Cell key={i} fill={COLORS[i % COLORS.length]} />
           ))}
         </Pie>
         <Tooltip />
@@ -216,20 +216,32 @@ function CustomPie({ data }) {
   );
 }
 
-function TopList({ title, data, field }) {
+function TopList({ title, data = [], field }) {
   return (
     <div className="bg-white p-5 rounded-2xl shadow">
       <h3 className="font-semibold mb-4">{title}</h3>
 
       {data.map((p) => (
-        <div
-          key={p._id}
-          className="flex justify-between border-b py-2 text-sm"
-        >
+        <div key={p._id} className="flex justify-between border-b py-2 text-sm">
           <span className="truncate">{p.name}</span>
           <span className="font-bold">{p[field]}</span>
         </div>
       ))}
     </div>
+  );
+}
+
+function StatusBadge({ status }) {
+  const colors = {
+    pending: "bg-yellow-500",
+    delivered: "bg-green-500",
+    cancelled: "bg-red-500",
+    confirmed: "bg-blue-500",
+  };
+
+  return (
+    <span className={`text-white px-3 py-1 rounded text-xs ${colors[status]}`}>
+      {status}
+    </span>
   );
 }

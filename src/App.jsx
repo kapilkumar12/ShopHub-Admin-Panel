@@ -16,6 +16,7 @@ import Users from "./pages/Users";
 import Sliders from "./pages/Sliders";
 import AddSliders from "./pages/AddSliders";
 import EditSlider from "./pages/EditSliders";
+import Reviews from "./pages/Reviews";
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
             <Route path="/sliders" element={<Sliders />} />
             <Route path="/sliders/add" element={<AddSliders />} />
             <Route path="/sliders/edit/:id" element={<EditSlider />} />
+            <Route path="/Reviews" element={<Reviews />} />
           </Route>
         </Routes>
       </BrowserRouter>

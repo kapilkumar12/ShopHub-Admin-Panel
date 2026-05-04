@@ -1,19 +1,22 @@
 import { useState } from "react";
 import API from "../services/api";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 
 const AddProducts = () => {
-  const [form, setForm] = useState({
+  const [form,setForm] = useState({
     name: "",
     description: "",
-    price: "",
+    basePrice: "",          // ✅ MRP
     category: "",
     stock: "",
+    gstPercent: "",         // ✅ GST
+    discountPercent: "",    // ✅ Discount
+    shippingCost: "",       // ✅ Shipping
   });
 
-  const [images, setImages] = useState([]);
-  const [preview, setPreview] = useState([]);
-  const [progress, setProgress] = useState(0);
+  const [images,setImages] = useState([]);
+  const [preview,setPreview] = useState([]);
+  const [progress,setProgress] = useState(0);
 
   const navigate = useNavigate();
 
@@ -21,7 +24,7 @@ const AddProducts = () => {
   // 🔥 INPUT CHANGE
   ////////////////////////////////////////////////////////////////
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({ ...form,[e.target.name]: e.target.value });
   };
 
   ////////////////////////////////////////////////////////////////
@@ -61,8 +64,8 @@ const AddProducts = () => {
     const newImages = [...images];
     const newPreview = [...preview];
 
-    newImages.splice(index, 1);
-    newPreview.splice(index, 1);
+    newImages.splice(index,1);
+    newPreview.splice(index,1);
 
     setImages(newImages);
     setPreview(newPreview);
@@ -74,7 +77,7 @@ const AddProducts = () => {
   const handleAddProduct = async (e) => {
     e.preventDefault();
 
-    if (form.price < 0 || form.stock < 0) {
+    if (form.basePrice < 0 || form.stock < 0) {
       return alert("Price & Stock must be positive");
     }
 
@@ -82,14 +85,14 @@ const AddProducts = () => {
       const formData = new FormData();
 
       Object.keys(form).forEach((key) => {
-        formData.append(key, form[key]);
+        formData.append(key,form[key]);
       });
 
       images.forEach((img) => {
-        formData.append("images", img);
+        formData.append("images",img);
       });
 
-      const res = await API.post("/products/add-product", formData, {
+      await API.post("/products/add-product",formData,{
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -101,9 +104,7 @@ const AddProducts = () => {
         },
       });
 
-
       alert("Product added successfully ✅");
-
       navigate("/products");
 
     } catch (error) {
@@ -113,11 +114,15 @@ const AddProducts = () => {
 
   return (
     <div className="bg-gray-100 p-8 min-h-screen relative">
-        <Link to="/products" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition absolute top-0 right-0">List Products</Link>
+      <Link to="/products" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition absolute top-0 right-0">
+        List Products
+      </Link>
+
       <div className="bg-white p-6 rounded shadow max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">📝 Add Product</h1>
 
         <form onSubmit={handleAddProduct}>
+          
           <input
             className="w-full p-2 border mb-3 rounded"
             placeholder="Product Name"
@@ -132,16 +137,49 @@ const AddProducts = () => {
             onChange={handleChange}
           />
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+
+            {/* ✅ MRP */}
             <input
               type="number"
               min="0"
               className="w-full p-2 border mb-3 rounded"
-              placeholder="Price"
-              name="price"
+              placeholder="MRP (Base Price)"
+              name="basePrice"
               onChange={handleChange}
             />
 
+            {/* ✅ Discount */}
+            <input
+              type="number"
+              min="0"
+              className="w-full p-2 border mb-3 rounded"
+              placeholder="Discount %"
+              name="discountPercent"
+              onChange={handleChange}
+            />
+
+            {/* ✅ GST */}
+            <input
+              type="number"
+              min="0"
+              className="w-full p-2 border mb-3 rounded"
+              placeholder="GST %"
+              name="gstPercent"
+              onChange={handleChange}
+            />
+
+            {/* ✅ Shipping */}
+            <input
+              type="number"
+              min="0"
+              className="w-full p-2 border mb-3 rounded"
+              placeholder="Shipping Cost"
+              name="shippingCost"
+              onChange={handleChange}
+            />
+
+            {/* CATEGORY */}
             <input
               className="w-full p-2 border mb-3 rounded"
               placeholder="Category"
@@ -149,6 +187,7 @@ const AddProducts = () => {
               onChange={handleChange}
             />
 
+            {/* STOCK */}
             <input
               type="number"
               min="0"
@@ -176,9 +215,9 @@ const AddProducts = () => {
             className="mb-4"
           />
 
-          {/* 🔥 PREVIEW + REMOVE */}
+          {/* PREVIEW */}
           <div className="grid grid-cols-3 gap-3 mb-4">
-            {preview.map((img, i) => (
+            {preview.map((img,i) => (
               <div key={i} className="relative">
                 <img
                   src={img}
@@ -197,7 +236,7 @@ const AddProducts = () => {
             ))}
           </div>
 
-          {/* 🚀 PROGRESS BAR */}
+          {/* PROGRESS */}
           {progress > 0 && (
             <div className="mb-4">
               <div className="w-full bg-gray-200 rounded h-3">
@@ -213,6 +252,7 @@ const AddProducts = () => {
           <button className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
             Save Product
           </button>
+
         </form>
       </div>
     </div>

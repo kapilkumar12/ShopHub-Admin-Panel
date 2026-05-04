@@ -3,14 +3,17 @@ import API from "../services/api";
 import { useNavigate, useParams, Link } from "react-router-dom";
 
 const EditProduct = () => {
-  const { id } = useParams(); // 🔥 get product id
+  const { id } = useParams();
 
   const [form, setForm] = useState({
     name: "",
     description: "",
-    price: "",
+    basePrice: "",
     category: "",
     stock: "",
+    gstPercent: "",
+    discountPercent: "",
+    shippingCost: "",
   });
 
   const [images, setImages] = useState([]);
@@ -21,7 +24,7 @@ const EditProduct = () => {
   const navigate = useNavigate();
 
   ////////////////////////////////////////////////////////////////
-  // 🔥 FETCH PRODUCT DATA
+  // 🔥 FETCH PRODUCT
   ////////////////////////////////////////////////////////////////
   useEffect(() => {
     fetchProduct();
@@ -30,20 +33,20 @@ const EditProduct = () => {
   const fetchProduct = async () => {
     try {
       const res = await API.get(`/products/get-single-product/${id}`);
-
       const product = res.data.product;
 
       setForm({
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        category: product.category,
-        stock: product.stock,
+        name: product.name || "",
+        description: product.description || "",
+        basePrice: product.basePrice || "",
+        category: product.category || "",
+        stock: product.stock || "",
+        gstPercent: product.gstPercent || "",
+        discountPercent: product.discountPercent || "",
+        shippingCost: product.shippingCost || "",
       });
 
-      // existing images preview (from backend URLs)
       setPreview(product.images || []);
-
     } catch (error) {
       alert("Failed to load product ❌");
     }
@@ -65,36 +68,34 @@ const EditProduct = () => {
     const previewUrls = files.map((file) =>
       URL.createObjectURL(file)
     );
+
     setPreview((prev) => [...prev, ...previewUrls]);
     setImages((prev) => [...prev, ...files]);
-    
   };
 
   ////////////////////////////////////////////////////////////////
   // ❌ REMOVE IMAGE
   ////////////////////////////////////////////////////////////////
-const removeImage = (index) => {
-  const removedImage = preview[index];
+  const removeImage = (index) => {
+    const removedImage = preview[index];
+    let newPreview = [...preview];
 
-//    
-   let newPreview = [...preview];
+    if (removedImage?.fileId) {
+      setDeletedImages((prev) => [...prev, removedImage]);
+    } else {
+      let newImages = [...images];
 
-  // 🔥 agar ye backend wali image hai (URL string)
-  if (removedImage?.fileId) {
-    setDeletedImages((prev) => [...prev, removedImage]);
-  } else {
-    // new image (blob)
-    let newImages = [...images];
-    const blobIndex = preview
-      .slice(0, index)
-      .filter((img) => typeof img === "string").length;
-    newImages.splice(index - blobIndex, 1);
-    setImages(newImages);
-  }
+      const blobIndex = preview
+        .slice(0, index)
+        .filter((img) => typeof img === "string").length;
 
-  newPreview.splice(index, 1);
-  setPreview(newPreview);
-};
+      newImages.splice(index - blobIndex, 1);
+      setImages(newImages);
+    }
+
+    newPreview.splice(index, 1);
+    setPreview(newPreview);
+  };
 
   ////////////////////////////////////////////////////////////////
   // 🚀 UPDATE PRODUCT
@@ -102,7 +103,7 @@ const removeImage = (index) => {
   const handleUpdateProduct = async (e) => {
     e.preventDefault();
 
-    if (form.price < 0 || form.stock < 0) {
+    if (form.basePrice < 0 || form.stock < 0) {
       return alert("Price & Stock must be positive");
     }
 
@@ -112,33 +113,27 @@ const removeImage = (index) => {
       Object.keys(form).forEach((key) => {
         formData.append(key, form[key]);
       });
-       
+
       formData.append("deletedImages", JSON.stringify(deletedImages));
 
-      // new images
       images.forEach((img) => {
         formData.append("images", img);
       });
 
-      const res = await API.put(
-        `/products/update-product/${id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          onUploadProgress: (progressEvent) => {
-            const percent = Math.round(
-              (progressEvent.loaded * 100) /
-                progressEvent.total
-            );
-            setProgress(percent);
-          },
-        }
-      );
+      await API.put(`/products/update-product/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent) => {
+          const percent = Math.round(
+            (progressEvent.loaded * 100) /
+              progressEvent.total
+          );
+          setProgress(percent);
+        },
+      });
 
       alert("Product updated successfully ✅");
-
       navigate("/products");
 
     } catch (error) {
@@ -178,15 +173,46 @@ const removeImage = (index) => {
             placeholder="Description"
           />
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+
             <input
               type="number"
               min="0"
-              name="price"
-              value={form.price}
+              name="basePrice"
+              value={form.basePrice}
               onChange={handleChange}
               className="w-full p-2 border rounded"
-              placeholder="Price"
+              placeholder="MRP (Base Price)"
+            />
+
+            <input
+              type="number"
+              min="0"
+              name="discountPercent"
+              value={form.discountPercent}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              placeholder="Discount %"
+            />
+
+            <input
+              type="number"
+              min="0"
+              name="gstPercent"
+              value={form.gstPercent}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              placeholder="GST %"
+            />
+
+            <input
+              type="number"
+              min="0"
+              name="shippingCost"
+              value={form.shippingCost}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              placeholder="Shipping Cost"
             />
 
             <input

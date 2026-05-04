@@ -1,19 +1,19 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect,useState,useCallback } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 
 export default function Orders() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [orders,setOrders] = useState([]);
+  const [loading,setLoading] = useState(false);
 
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [sort, setSort] = useState("");
-  const [priceRange, setPriceRange] = useState(10000);
+  const [search,setSearch] = useState("");
+  const [category,setCategory] = useState("");
+  const [sort,setSort] = useState("");
+  const [priceRange,setPriceRange] = useState(1000000);
 
-  const [page, setPage] = useState(1);
+  const [page,setPage] = useState(1);
   const [totalPages,setTotalPages] = useState(1);
 
   const [categories,setCategories] = useState([]);
@@ -27,25 +27,28 @@ export default function Orders() {
     try {
       setLoading(true);
 
-      const res = await API.get("/admin/orders/filter", {
+      const res = await API.get("/admin/orders/filter",{
         params: {
           search,
-          page,
           category,
           sort,
-          maxPrice: priceRange,
+          maxPrice: Number(priceRange),
+          page,
+          limit: 5,
         },
       });
 
       // 🛡️ SAFE HANDLING
       const data = res.data;
 
+      console.log("data",data)
+
       if (Array.isArray(data)) {
         setOrders(data);
       } else if (Array.isArray(data.orders)) {
         setOrders(data.orders);
       } else {
-        console.warn("Unexpected API format:", data);
+        console.warn("Unexpected API format:",data);
         setOrders([]);
       }
 
@@ -58,20 +61,20 @@ export default function Orders() {
     } finally {
       setLoading(false);
     }
-  }, [search, page, category, sort, priceRange]);
+  },[search,category,sort,priceRange,page]);
 
   ////////////////////////////////////////////////////////////////
   // 🔥 DEBOUNCE FETCH
   ////////////////////////////////////////////////////////////////
   useEffect(() => {
-    const timer = setTimeout(fetchOrders, 400);
+    const timer = setTimeout(fetchOrders,400);
     return () => clearTimeout(timer);
-  }, [fetchOrders]);
+  },[fetchOrders]);
 
   ////////////////////////////////////////////////////////////////
   // 🔥 UPDATE STATUS
   ////////////////////////////////////////////////////////////////
-  const updateStatus = async (orderId, status) => {
+  const updateStatus = async (orderId,status) => {
     const result = await Swal.fire({
       title: "Are you sure?",
       text: `Change status to ${status}`,
@@ -83,14 +86,14 @@ export default function Orders() {
     if (!result.isConfirmed) return;
 
     try {
-      await API.put("/orders/update-status", { orderId, status });
+      await API.put("/orders/update-status",{ orderId,status });
 
       toast.success(`Order ${status} ✅`);
 
       // ⚡ instant UI update (better UX)
       setOrders((prev) =>
         prev.map((o) =>
-          o._id === orderId ? { ...o, status } : o
+          o._id === orderId ? { ...o,status } : o
         )
       );
 
@@ -104,7 +107,7 @@ export default function Orders() {
   ////////////////////////////////////////////////////////////////
   const downloadInvoice = async (id) => {
     try {
-      const res = await API.get(`/orders/invoice/${id}`, {
+      const res = await API.get(`/orders/invoice/${id}`,{
         responseType: "blob",
       });
 
@@ -143,7 +146,7 @@ export default function Orders() {
           className="border px-3 py-2 rounded w-64"
         />
 
-        <select value={category} onChange={(e) => {setCategory(e.target.value); setPage(1)}} className="border px-3 py-2 rounded">
+        <select value={category} onChange={(e) => { setCategory(e.target.value); setPage(1) }} className="border px-3 py-2 rounded">
           <option value="">All Categories</option>
           {categories.map((cat,index) => (
             <option key={index} value={cat}>
@@ -155,7 +158,7 @@ export default function Orders() {
         <select value={sort} onChange={(e) => {
           setSort(e.target.value);
           setPage(1);
-          }} className="border px-3 py-2 rounded">
+        }} className="border px-3 py-2 rounded">
           <option value="">Sort</option>
           <option value="price_asc">Price Low → High</option>
           <option value="price_desc">Price High → Low</option>
@@ -170,7 +173,7 @@ export default function Orders() {
             max="10000"
             value={priceRange}
             onChange={(e) => {
-              setPriceRange(e.target.value);
+              setPriceRange(Number(e.target.value));
               setPage(1);
             }}
           />
@@ -202,7 +205,7 @@ export default function Orders() {
                 </td>
               </tr>
             ) : (
-              orders.map((o, index) => (
+              orders.map((o,index) => (
                 <tr key={o._id} className="border-t">
                   <td className="p-3">{index + 1}</td>
 
@@ -215,17 +218,17 @@ export default function Orders() {
 
                   <td className="p-3">{o.user?.name || "N/A"}</td>
 
-                  <td className="p-3">₹{o.totalPrice}</td>
+                  <td className="p-3">{`₹${Math.floor(o.totalPrice)}`}</td>
 
                   <td className="p-3">
                     <StatusBadge status={o.status} />
                   </td>
 
                   <td className="p-3 space-x-2">
-                    <button onClick={() => updateStatus(o._id, "confirmed")} className="bg-blue-500 text-white px-2 py-1 rounded">Approve</button>
-                    <button onClick={() => updateStatus(o._id, "shipped")} className="bg-yellow-500 text-white px-2 py-1 rounded">Ship</button>
-                    <button onClick={() => updateStatus(o._id, "delivered")} className="bg-green-500 text-white px-2 py-1 rounded">Deliver</button>
-                    <button onClick={() => updateStatus(o._id, "cancelled")} className="bg-red-500 text-white px-2 py-1 rounded">Cancel</button>
+                    <button onClick={() => updateStatus(o._id,"confirmed")} className="bg-blue-500 text-white px-2 py-1 rounded">Approve</button>
+                    <button onClick={() => updateStatus(o._id,"shipped")} className="bg-yellow-500 text-white px-2 py-1 rounded">Ship</button>
+                    <button onClick={() => updateStatus(o._id,"delivered")} className="bg-green-500 text-white px-2 py-1 rounded">Deliver</button>
+                    <button onClick={() => updateStatus(o._id,"cancelled")} className="bg-red-500 text-white px-2 py-1 rounded">Cancel</button>
                     <button onClick={() => downloadInvoice(o._id)} className="bg-gray-700 text-white px-2 py-1 rounded">Invoice</button>
                   </td>
                 </tr>
@@ -238,7 +241,7 @@ export default function Orders() {
       {/* PAGINATION */}
       <div className="flex justify-center mt-4 gap-3">
         <button
-          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          onClick={() => setPage((p) => Math.max(p - 1,1))}
           className="px-3 py-1 bg-gray-200 rounded"
         >
           Prev
@@ -282,9 +285,9 @@ function StatusBadge({ status }) {
 // 🔥 SKELETON
 //////////////////////////////////////////////////////////////
 function SkeletonRows() {
-  return Array(5).fill(0).map((_, i) => (
+  return Array(5).fill(0).map((_,i) => (
     <tr key={i} className="border-t animate-pulse">
-      {[...Array(6)].map((_, idx) => (
+      {[...Array(6)].map((_,idx) => (
         <td key={idx} className="p-3">
           <div className="h-4 bg-gray-300 rounded w-full"></div>
         </td>

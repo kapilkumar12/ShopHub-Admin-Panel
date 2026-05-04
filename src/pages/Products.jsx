@@ -11,7 +11,7 @@ export default function Products() {
   const [search,setSearch] = useState("");
   const [category,setCategory] = useState("");
   const [sort,setSort] = useState("");
-  const [priceRange,setPriceRange] = useState(10000);
+  const [priceRange,setPriceRange] = useState(200000);
 
   const [page,setPage] = useState(1);
   const [totalPages,setTotalPages] = useState(1);
@@ -21,9 +21,8 @@ export default function Products() {
   const navigate = useNavigate();
 
   ////////////////////////////////////////////////////////////////
-  // 🔥 FETCH
+  // 🔥 FETCH PRODUCTS
   ////////////////////////////////////////////////////////////////
-
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
@@ -33,22 +32,16 @@ export default function Products() {
           search,
           category,
           sort,
-          maxPrice: Number(priceRange),
+          minPrice: 0,
+          maxPrice: priceRange,
           page,
-          limit: 5,
+          limit: 10,
         },
       });
 
       const data = res.data;
 
-      if (Array.isArray(data)) {
-        setProducts(data);
-      } else if (Array.isArray(data.products)) {
-        setProducts(data.products);
-      } else {
-        console.warn("Unexpected API format:",data);
-        setProducts([]);
-      }
+      setProducts(data.products || []);
       setTotalPages(data.totalPages || 1);
       setCategories(data.categories || []);
     } catch (error) {
@@ -65,7 +58,7 @@ export default function Products() {
   },[fetchProducts]);
 
   ////////////////////////////////////////////////////////////////
-  // ❌ DELETE
+  // ❌ DELETE PRODUCT
   ////////////////////////////////////////////////////////////////
   const deleteProduct = async (id) => {
     const result = await Swal.fire({
@@ -89,12 +82,13 @@ export default function Products() {
   };
 
   ////////////////////////////////////////////////////////////////
-  // 🔍 HIGHLIGHT SEARCH
+  // 🔍 HIGHLIGHT SEARCH (SAFE)
   ////////////////////////////////////////////////////////////////
-  const highlight = (text) => {
+  const highlight = (text = "") => {
     if (!search) return text;
 
     const parts = text.split(new RegExp(`(${search})`,"gi"));
+
     return parts.map((part,i) =>
       part.toLowerCase() === search.toLowerCase() ? (
         <span key={i} className="bg-yellow-200 px-1 rounded">
@@ -124,7 +118,7 @@ export default function Products() {
         </Link>
       </div>
 
-      {/* 🔥 FILTER BAR */}
+      {/* FILTER BAR */}
       <div className="bg-white p-4 rounded shadow mb-4 flex flex-wrap gap-3">
 
         {/* SEARCH */}
@@ -177,7 +171,7 @@ export default function Products() {
           <input
             type="range"
             min="0"
-            max="10000"
+            max="200000"
             value={priceRange}
             onChange={(e) => {
               setPriceRange(Number(e.target.value));
@@ -224,7 +218,28 @@ export default function Products() {
                     {highlight(product.name)}
                   </td>
 
-                  <td className="p-3">₹{product.price}</td>
+                  {/* AMAZON STYLE PRICE */}
+                  <td className="p-3">
+                    <div className="flex flex-col">
+                      <span className="text-gray-400 line-through text-sm">
+                        ₹{product.basePrice}
+                      </span>
+
+                      <span className="font-semibold text-lg">
+                        ₹{product.sellingPrice}
+                      </span>
+
+                      {product.discountPercent > 0 && (
+                        <span className="text-green-600 text-sm">
+                          {product.discountPercent}% OFF
+                        </span>
+                      )}
+
+                      <span className="text-xs text-gray-500">
+                        + ₹{product.shippingCost} delivery
+                      </span>
+                    </div>
+                  </td>
 
                   <td className="p-3">{product.category}</td>
 
@@ -257,7 +272,7 @@ export default function Products() {
         <button
           onClick={() => setPage(page - 1)}
           disabled={page === 1}
-          className="px-3 py-1 bg-gray-200 rounded"
+          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
         >
           Prev
         </button>
@@ -268,7 +283,8 @@ export default function Products() {
 
         <button
           onClick={() => setPage(page + 1)}
-          className="px-3 py-1 bg-gray-200 rounded"
+          disabled={page === totalPages}
+          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
         >
           Next
         </button>
