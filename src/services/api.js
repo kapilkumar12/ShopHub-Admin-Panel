@@ -6,21 +6,14 @@ const API = axios.create({
   withCredentials: true,
 });
 
-API.interceptors.response.use(
-  (res) => res,
-  (error) => {
-    const message = error.response?.data?.message || "Something went wrong";
-    const status = error.response?.status;
-    const silentErrors = [400, 401, 404];
-    if (!silentErrors.includes(status)) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: message,
-      });
-    }
-    return Promise.reject(error);
-  },
-);
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
 
 export default API;

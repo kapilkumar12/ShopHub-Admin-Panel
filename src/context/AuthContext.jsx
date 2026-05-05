@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   // 🔥 fetch logged in user
   const fetchUser = async () => {
     try {
-      const res = await API.get("/auth/me"); // backend API
+      const res = await API.get("/auth/me");
       setUser(res.data.user);
     } catch (error) {
       setUser(null);
