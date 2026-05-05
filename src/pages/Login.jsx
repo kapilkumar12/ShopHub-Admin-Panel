@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import API from "../services/api";
-import { useNavigate, Link  } from 'react-router-dom';
+import { useNavigate,Link } from 'react-router-dom';
 import { useAuth } from "../context/AuthContext";
 
 
@@ -9,20 +9,34 @@ const Login = () => {
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('');
     const navigate = useNavigate();
-    const { fetchUser } = useAuth();
+    const { fetchUser,user,loading } = useAuth();
+
+    useEffect(() => {
+        if (!loading && user) {
+            navigate("/");
+        }
+    },[user,loading]);
 
     const handleLogin = async () => {
         try {
 
-            const res = await API.post('/auth/login',{ email,password });   
-            localStorage.setItem("accessToken", res.data.accessToken);
-                   
+            const res = await API.post('/auth/login',{ email,password });
+            localStorage.setItem("accessToken",res.data.accessToken);
+
             await fetchUser();
             navigate('/');
 
         } catch (error) {
-            alert('Login failed')
+            alert(error?.response?.data?.message || 'Login failed');
         }
+    }
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <p>Loading...</p>
+            </div>
+        );
     }
 
     return (
