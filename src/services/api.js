@@ -29,15 +29,20 @@ API.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 🔥 agar token expire ho gaya
+    // ❌ skip auth routes
+    const isAuthRoute =
+      originalRequest.url.includes("/auth/login") ||
+      originalRequest.url.includes("/auth/refresh") ||
+      originalRequest.url.includes("/auth/me");
+
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !isAuthRoute // 🔥 IMPORTANT
     ) {
       originalRequest._retry = true;
 
       try {
-        // 🔄 refresh token call
         const res = await axios.get(
           "https://shophub-backend-ee64.onrender.com/api/auth/refresh",
           { withCredentials: true }
@@ -45,16 +50,13 @@ API.interceptors.response.use(
 
         const newToken = res.data.accessToken;
 
-        // 🔥 new token save
         localStorage.setItem("accessToken", newToken);
 
-        // 🔥 retry original request
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
         return API(originalRequest);
 
       } catch (err) {
-        // ❌ refresh fail → logout
         localStorage.removeItem("accessToken");
         window.location.href = "/login";
       }

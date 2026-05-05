@@ -24,7 +24,6 @@ const Login = () => {
             localStorage.setItem("accessToken",res.data.accessToken);
 
             await fetchUser();
-            navigate('/');
 
         } catch (error) {
             alert(error?.response?.data?.message || 'Login failed');
@@ -34,7 +33,7 @@ const Login = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
-                <p>Loading...</p>
+                <p>Checking authentication...</p>
             </div>
         );
     }

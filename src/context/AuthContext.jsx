@@ -21,6 +21,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+    useEffect(() => {
+    fetchUser();
+  },[]);
+
   // 🔥 logout
   const logout = async () => {
     try {
@@ -32,10 +36,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 🔥 auto run on app load
-  useEffect(() => {
-    fetchUser();
-  },[]);
 
   return (
     <AuthContext.Provider
