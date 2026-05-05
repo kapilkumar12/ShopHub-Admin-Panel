@@ -14,6 +14,9 @@ const Login = () => {
     const handleLogin = async () => {
         try {
             const res = await API.post('/auth/login',{ email,password });
+
+            localStorage.setItem("token", res.data.token);
+            
             await fetchUser();
             navigate('/');
         } catch (error) {
