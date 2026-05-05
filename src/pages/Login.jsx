@@ -13,12 +13,11 @@ const Login = () => {
 
     const handleLogin = async () => {
         try {
-            const res = await API.post('/auth/login',{ email,password });
 
-            localStorage.setItem("token", res.data.token);
-            
+            const res = await API.post('/auth/login',{ email,password });          
             await fetchUser();
             navigate('/');
+            
         } catch (error) {
             alert('Login failed')
         }
