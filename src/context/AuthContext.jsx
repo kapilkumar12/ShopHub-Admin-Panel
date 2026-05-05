@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await API.post("/auth/logout");
+      localStorage.removeItem("accessToken");
       setUser(null);
     } catch (error) {
       Swal.fire("Error","Failed to logout","error");

@@ -9,6 +9,9 @@ export default function Navbar({ setOpen }) {
   const handleLogout = async () => {
     try {
       await API.get("/auth/logout");
+
+      localStorage.removeItem("accessToken");
+      
       setUser(null);
       navigate("/login");
     } catch {

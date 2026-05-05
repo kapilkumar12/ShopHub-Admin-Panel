@@ -14,10 +14,12 @@ const Login = () => {
     const handleLogin = async () => {
         try {
 
-            const res = await API.post('/auth/login',{ email,password });          
+            const res = await API.post('/auth/login',{ email,password });   
+            localStorage.setItem("accessToken", res.data.accessToken);
+                   
             await fetchUser();
             navigate('/');
-            
+
         } catch (error) {
             alert('Login failed')
         }
